@@ -1,0 +1,32 @@
+<header class="page-header">
+  <div class="header-content">
+    <!-- Vissza nyíl -->
+    <div class="back-button" (click)="goBack()">
+      <svg viewBox="0 0 24 24" aria-hidden="true" class="back-icon"><g><path d="M7.414 13l5.043 5.04-1.414 1.42L3.586 12l7.457-7.46 1.414 1.42L7.414 11H21v2H7.414z"></path></g></svg>
+    </div>
+    <div class="header-text">
+      <h2>Post</h2>
+    </div>
+  </div>
+</header>
+
+<div class="post-detail-container" *ngIf="mainPost">
+  <!-- A fő poszt (thread view vonal nélkül, vagy épp azzal, ha lenne felette is poszt) -->
+  <app-post
+    [post]="mainPost.post"
+    [user]="mainPost.user"
+    [isClickable]="false"
+    [isThreadLineVisible]="true">
+  </app-post>
+
+  <!-- Komment szekció (Replies) -->
+  <div class="comments-section">
+    <app-post
+      *ngFor="let comment of comments; let last = last"
+      [post]="comment.post"
+      [user]="comment.user"
+      [isClickable]="true"
+      [isThreadLineVisible]="!last">
+    </app-post>
+  </div>
+</div>

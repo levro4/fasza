@@ -1,0 +1,20 @@
+<header class="page-header">
+  <div class="header-text">
+    <h2>{{ pageTitle }}</h2>
+    <span class="post-count">{{ bookmarkedPosts.length }} bookmarks</span>
+  </div>
+</header>
+
+<div class="bookmarks-container">
+  <div class="placeholder-content" *ngIf="bookmarkedPosts.length === 0">
+    <p>Nem mentettél még el egyetlen bejegyzést sem.</p>
+  </div>
+
+  <div class="posts-feed" *ngIf="bookmarkedPosts.length > 0">
+    <app-post
+      *ngFor="let item of bookmarkedPosts"
+      [post]="item.post"
+      [user]="item.user">
+    </app-post>
+  </div>
+</div>

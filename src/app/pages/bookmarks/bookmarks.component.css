@@ -1,0 +1,28 @@
+.page-header {
+  padding: 0 16px;
+  height: 53px;
+  display: flex;
+  align-items: center;
+}
+
+.header-text h2 {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.post-count {
+  font-size: 13px;
+  color: var(--secondary-text-color);
+  font-weight: normal;
+}
+
+.bookmarks-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.posts-feed {
+  display: flex;
+  flex-direction: column;
+}

@@ -1,0 +1,110 @@
+.sidebar {
+  width: 275px;
+  padding: 10px 20px;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
+}
+
+.logo {
+  padding: 12px;
+  border-radius: 50%;
+  width: fit-content;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-bottom: 10px;
+}
+
+.logo:hover {
+  background-color: var(--hover-bg-color);
+}
+
+.nav-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.nav-item {
+  text-decoration: none;
+  color: var(--text-color);
+  font-size: 20px;
+  padding: 12px;
+  border-radius: 9999px;
+  width: fit-content;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.2s;
+}
+
+.nav-item:hover {
+  background-color: var(--hover-bg-color);
+}
+
+.nav-item.active {
+  font-weight: bold;
+}
+
+.nav-icon {
+  width: 26px;
+  height: 26px;
+  margin-right: 20px;
+  fill: currentColor;
+}
+
+.tweet-btn {
+  width: 90%;
+  padding: 15px;
+  font-size: 17px;
+  margin-top: 10px;
+}
+
+.user-menu {
+    margin-top: auto;
+    padding-bottom: 20px;
+}
+
+/* Post Modal specifikus stílusok */
+.post-input-container {
+  display: flex;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.post-textarea {
+  width: 100%;
+  border: none;
+  resize: none;
+  font-size: 20px;
+  font-family: inherit;
+  outline: none;
+  min-height: 120px;
+  padding: 10px;
+  background-color: transparent;
+  color: var(--text-color);
+}
+
+.post-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 15px;
+}
+
+/* Kisebb képernyőkön esetleg elrejtjük a scrollozást, de alapvetően a sidebar görgethető lesz, ha nem fér ki */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--secondary-text-color);
+}

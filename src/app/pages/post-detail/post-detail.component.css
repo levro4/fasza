@@ -1,0 +1,50 @@
+.page-header {
+  padding: 0 16px;
+  height: 53px;
+  display: flex;
+  align-items: center;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-left: -8px;
+}
+
+.back-button:hover {
+  background-color: var(--hover-bg-color);
+}
+
+.back-icon {
+  width: 20px;
+  height: 20px;
+  fill: var(--text-color);
+}
+
+.header-text h2 {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.post-detail-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.comments-section {
+  display: flex;
+  flex-direction: column;
+}

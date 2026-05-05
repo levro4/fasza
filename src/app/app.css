@@ -1,0 +1,7 @@
+.main-content.full-width {
+    max-width: 100%;
+    border-left: none;
+    border-right: none;
+    flex: none;
+    width: 100%;
+}
