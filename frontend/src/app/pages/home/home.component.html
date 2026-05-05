@@ -1,0 +1,23 @@
+<header class="page-header">
+  {{ pageTitle }}
+</header>
+
+@if (isLoading) {
+  <div class="placeholder-content">
+    <p>Loading posts...</p>
+  </div>
+} @else if (posts.length === 0) {
+  <div class="placeholder-content">
+    <p>No posts to display. Follow some users or create your first post!</p>
+  </div>
+} @else {
+  <div class="feed-content">
+    @for (item of posts; track item.post.id) {
+      <app-post
+        [post]="item.post"
+        [user]="item.user"
+        (postClicked)="onPostClicked($event)"
+      ></app-post>
+    }
+  </div>
+}
