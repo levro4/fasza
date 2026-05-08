@@ -46,3 +46,4 @@ Thumbs.db
 node_modules/
 .angular/
 venv/
+/backend/twitter_clone.db
