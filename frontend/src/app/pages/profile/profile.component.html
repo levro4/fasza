@@ -4,7 +4,7 @@
     <!-- Vissza nyíl placeholder -->
     <svg viewBox="0 0 24 24" aria-hidden="true" class="back-icon"><g><path d="M7.414 13l5.043 5.04-1.414 1.42L3.586 12l7.457-7.46 1.414 1.42L7.414 11H21v2H7.414z"></path></g></svg>
     <div class="header-text">
-      <h2>{{ user.displayName }}</h2>
+      <h2>{{ user.displayName || user.username }}</h2>
       <span class="post-count">{{ posts.length }} posts</span>
     </div>
   </div>
@@ -13,7 +13,9 @@
 <div class="profile-container">
   <!-- Banner -->
   <div class="banner">
-    <img [src]="user.bannerImage" alt="Profile Banner" *ngIf="user.bannerImage">
+    @if (user.bannerImage) {
+      <img [src]="user.bannerImage" alt="Profile Banner">
+    }
   </div>
 
   <!-- Profil infók -->
@@ -26,7 +28,7 @@
     </div>
 
     <div class="user-details">
-      <h1 class="display-name">{{ user.displayName }}</h1>
+      <h1 class="display-name">{{ user.displayName || user.username }}</h1>
       <span class="username">{{ user.username }}</span>
 
       <div class="join-date">
@@ -43,15 +45,16 @@
 
   <!-- Feed fülek (Navigáció) -->
   <div class="feed-tabs">
-    <div
-      class="tab"
-      *ngFor="let tab of tabs"
-      [class.active]="activeTab === tab"
-      (click)="setActiveTab(tab)">
-      <div class="tab-text-wrapper">
-        <span>{{ tab }}</span>
+    @for (tab of tabs; track tab) {
+      <div
+        class="tab"
+        [class.active]="activeTab === tab"
+        (click)="setActiveTab(tab)">
+        <div class="tab-text-wrapper">
+          <span>{{ tab }}</span>
+        </div>
       </div>
-    </div>
+    }
     <!-- Animált vonal -->
     <div class="tab-indicator-container" [style.transform]="'translateX(' + (activeTabIndex * 100) + '%)'">
        <div class="tab-indicator-line"></div>
@@ -62,104 +65,118 @@
   <div class="tab-content-area">
 
     <!-- Posts Tab -->
-    <div class="posts-feed" *ngIf="activeTab === 'Posts'">
-      <app-post
-        *ngFor="let item of posts"
-        [post]="item.post"
-        [user]="item.owner">
-      </app-post>
-    </div>
+    @if (activeTab === 'Posts') {
+      <div class="posts-feed">
+        @for (item of posts; track item.id) {
+          <app-post
+            [post]="item">
+          </app-post>
+        }
+      </div>
+    }
 
     <!-- Replies Tab -->
-    <div class="placeholder-content" *ngIf="activeTab === 'Replies'">
-      <h2>Nothing to see here - yet</h2>
-      <p>When they reply to a post, it will show up here.</p>
-    </div>
+    @if (activeTab === 'Replies') {
+      <div class="placeholder-content">
+        <h2>Nothing to see here - yet</h2>
+        <p>When they reply to a post, it will show up here.</p>
+      </div>
+    }
 
     <!-- Reposts Tab -->
-    <div class="placeholder-content" *ngIf="activeTab === 'Reposts'">
-      <h2>Nothing to see here - yet</h2>
-      <p>When they repost a post, it will show up here.</p>
-    </div>
+    @if (activeTab === 'Reposts') {
+      <div class="placeholder-content">
+        <h2>Nothing to see here - yet</h2>
+        <p>When they repost a post, it will show up here.</p>
+      </div>
+    }
 
     <!-- Media Tab -->
-    <div class="placeholder-content" *ngIf="activeTab === 'Media'">
-      <h2>Lights, camera ... attachments!</h2>
-      <p>When they send Tweets with photos or videos in them, it will show up here.</p>
-    </div>
+    @if (activeTab === 'Media') {
+      <div class="placeholder-content">
+        <h2>Lights, camera ... attachments!</h2>
+        <p>When they send Tweets with photos or videos in them, it will show up here.</p>
+      </div>
+    }
 
     <!-- Likes Tab -->
-    <div class="placeholder-content" *ngIf="activeTab === 'Likes'">
-      <h2>They don't have any likes yet</h2>
-      <p>Once they like a post, it'll show up here.</p>
-    </div>
+    @if (activeTab === 'Likes') {
+      <div class="placeholder-content">
+        <h2>They don't have any likes yet</h2>
+        <p>Once they like a post, it'll show up here.</p>
+      </div>
+    }
 
   </div>
 </div>
 
 <!-- Edit Profile Modal -->
-<div class="modal-overlay" *ngIf="isEditModalOpen" (click)="closeEditModal()">
-  <div class="modal-container edit-modal" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <div style="display: flex; align-items: center; gap: 20px;">
-        <button class="modal-close-btn" (click)="closeEditModal()">
-          <svg viewBox="0 0 24 24" aria-hidden="true" width="20" height="20" fill="currentColor">
-            <g><path d="M10.59 12L4.54 5.96l1.42-1.42L12 10.59l6.04-6.05 1.42 1.42L13.41 12l6.05 6.04-1.42 1.42L12 13.41l-6.04 6.05-1.42-1.42L10.59 12z"></path></g>
-          </svg>
-        </button>
-        <h2 style="margin: 0; font-size: 20px;">Edit profile</h2>
-      </div>
-      <!-- Ide áthelyezve a margin-left: auto hogy a jobb szélre kerüljön -->
-      <button class="btn-primary save-btn" style="margin-left: auto;" (click)="saveProfile()">Save</button>
-    </div>
-
-    <div class="modal-content" style="padding: 0; overflow-y: auto; max-height: 70vh;">
-
-      <!-- Banner Edit -->
-      <div class="edit-banner">
-        <img [src]="editForm.bannerImage || user.bannerImage" alt="Banner preview" *ngIf="editForm.bannerImage || user.bannerImage">
-        <div class="edit-overlay">
-           <!-- Kamera ikon -->
-           <div class="camera-icon">
-              <svg viewBox="0 0 24 24" aria-hidden="true" width="22" height="22" fill="#fff"><g><path d="M9.697 3H11v2h-.697l-3 2H5c-.276 0-.5.224-.5.5v11c0 .276.224.5.5.5h14c.276 0 .5-.224.5-.5V10h2v8.5c0 1.381-1.119 2.5-2.5 2.5H5c-1.381 0-2.5-1.119-2.5-2.5v-11C2.5 6.119 3.619 5 5 5h1.697l3-2zM12 10.5c-1.105 0-2 .895-2 2s.895 2 2 2 2-.895 2-2-.895-2-2-2zm-4 2c0-2.209 1.791-4 4-4s4 1.791 4 4-1.791 4-4 4-4-1.791-4-4zM17 2c0 1.657-1.343 3-3 3v1c1.657 0 3 1.343 3 3h1c0-1.657 1.343-3 3-3V5c-1.657 0-3-1.343-3-3h-1z"></path></g></svg>
-           </div>
+@if (isEditModalOpen) {
+  <div class="modal-overlay" (click)="closeEditModal()">
+    <div class="modal-container edit-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 20px;">
+          <button class="modal-close-btn" (click)="closeEditModal()">
+            <svg viewBox="0 0 24 24" aria-hidden="true" width="20" height="20" fill="currentColor">
+              <g><path d="M10.59 12L4.54 5.96l1.42-1.42L12 10.59l6.04-6.05 1.42 1.42L13.41 12l6.05 6.04-1.42 1.42L12 13.41l-6.04 6.05-1.42-1.42L10.59 12z"></path></g>
+            </svg>
+          </button>
+          <h2 style="margin: 0; font-size: 20px;">Edit profile</h2>
         </div>
+        <!-- Ide áthelyezve a margin-left: auto hogy a jobb szélre kerüljön -->
+        <button class="btn-primary save-btn" style="margin-left: auto;" (click)="saveProfile()">Save</button>
       </div>
 
-      <!-- Profile Avatar Edit -->
-      <div class="edit-avatar-section">
-        <div class="edit-avatar-wrapper">
-          <img [src]="editForm.profileImage || user.profileImage" alt="Avatar preview" class="edit-avatar">
-          <div class="edit-overlay avatar-overlay">
-            <div class="camera-icon">
+      <div class="modal-content" style="padding: 0; overflow-y: auto; max-height: 70vh;">
+
+        <!-- Banner Edit -->
+        <div class="edit-banner">
+          @if (editForm.bannerImage || user.bannerImage) {
+            <img [src]="editForm.bannerImage || user.bannerImage" alt="Banner preview">
+          }
+          <div class="edit-overlay">
+             <!-- Kamera ikon -->
+             <div class="camera-icon">
                 <svg viewBox="0 0 24 24" aria-hidden="true" width="22" height="22" fill="#fff"><g><path d="M9.697 3H11v2h-.697l-3 2H5c-.276 0-.5.224-.5.5v11c0 .276.224.5.5.5h14c.276 0 .5-.224.5-.5V10h2v8.5c0 1.381-1.119 2.5-2.5 2.5H5c-1.381 0-2.5-1.119-2.5-2.5v-11C2.5 6.119 3.619 5 5 5h1.697l3-2zM12 10.5c-1.105 0-2 .895-2 2s.895 2 2 2 2-.895 2-2-.895-2-2-2zm-4 2c0-2.209 1.791-4 4-4s4 1.791 4 4-1.791 4-4 4-4-1.791-4-4zM17 2c0 1.657-1.343 3-3 3v1c1.657 0 3 1.343 3 3h1c0-1.657 1.343-3 3-3V5c-1.657 0-3-1.343-3-3h-1z"></path></g></svg>
+             </div>
+          </div>
+        </div>
+
+        <!-- Profile Avatar Edit -->
+        <div class="edit-avatar-section">
+          <div class="edit-avatar-wrapper">
+            <img [src]="editForm.profileImage || user.profileImage" alt="Avatar preview" class="edit-avatar">
+            <div class="edit-overlay avatar-overlay">
+              <div class="camera-icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true" width="22" height="22" fill="#fff"><g><path d="M9.697 3H11v2h-.697l-3 2H5c-.276 0-.5.224-.5.5v11c0 .276.224.5.5.5h14c.276 0 .5-.224.5-.5V10h2v8.5c0 1.381-1.119 2.5-2.5 2.5H5c-1.381 0-2.5-1.119-2.5-2.5v-11C2.5 6.119 3.619 5 5 5h1.697l3-2zM12 10.5c-1.105 0-2 .895-2 2s.895 2 2 2 2-.895 2-2-.895-2-2-2zm-4 2c0-2.209 1.791-4 4-4s4 1.791 4 4-1.791 4-4 4-4-1.791-4-4zM17 2c0 1.657-1.343 3-3 3v1c1.657 0 3 1.343 3 3h1c0-1.657 1.343-3 3-3V5c-1.657 0-3-1.343-3-3h-1z"></path></g></svg>
+              </div>
             </div>
           </div>
         </div>
+
+        <!-- Űrlap Mezők -->
+        <div class="edit-form-fields">
+          <!-- Név -->
+          <div class="form-group edit-input-group">
+            <label class="edit-label">Name</label>
+            <input type="text" class="edit-input" [(ngModel)]="editForm.displayName" [ngModelOptions]="{standalone: true}">
+          </div>
+
+          <!-- Profilkép URL -->
+          <div class="form-group edit-input-group">
+            <label class="edit-label">Profile Image URL</label>
+            <input type="text" class="edit-input" [(ngModel)]="editForm.profileImage" [ngModelOptions]="{standalone: true}">
+          </div>
+
+          <!-- Banner URL -->
+          <div class="form-group edit-input-group">
+            <label class="edit-label">Banner Image URL</label>
+            <input type="text" class="edit-input" [(ngModel)]="editForm.bannerImage" [ngModelOptions]="{standalone: true}">
+          </div>
+        </div>
+
       </div>
-
-      <!-- Űrlap Mezők -->
-      <div class="edit-form-fields">
-        <!-- Név -->
-        <div class="form-group edit-input-group">
-          <label class="edit-label">Name</label>
-          <input type="text" class="edit-input" [(ngModel)]="editForm.displayName" [ngModelOptions]="{standalone: true}">
-        </div>
-
-        <!-- Profilkép URL -->
-        <div class="form-group edit-input-group">
-          <label class="edit-label">Profile Image URL</label>
-          <input type="text" class="edit-input" [(ngModel)]="editForm.profileImage" [ngModelOptions]="{standalone: true}">
-        </div>
-
-        <!-- Banner URL -->
-        <div class="form-group edit-input-group">
-          <label class="edit-label">Banner Image URL</label>
-          <input type="text" class="edit-input" [(ngModel)]="editForm.bannerImage" [ngModelOptions]="{standalone: true}">
-        </div>
-      </div>
-
     </div>
   </div>
-</div>
+}
 }

@@ -1,6 +1,8 @@
 <div class="layout-container">
   <!-- Bal oldali sáv -->
-  <app-sidebar *ngIf="!isAuthPage"></app-sidebar>
+  @if (!isAuthPage) {
+    <app-sidebar></app-sidebar>
+  }
 
   <!-- Középső tartalom, itt cserélődnek az oldalak -->
   <main class="main-content" [class.full-width]="isAuthPage">
@@ -8,7 +10,9 @@
   </main>
 
   <!-- Jobb oldali sáv (későbbi funkciókhoz) -->
-  <aside class="right-sidebar placeholder-content" *ngIf="!isAuthPage" style="width: 350px;">
-    <!-- Itt lehet a keresés, ajánlások, stb. -->
-  </aside>
+  @if (!isAuthPage) {
+    <aside class="right-sidebar placeholder-content" style="width: 350px;">
+      <!-- Itt lehet a keresés, ajánlások, stb. -->
+    </aside>
+  }
 </div>

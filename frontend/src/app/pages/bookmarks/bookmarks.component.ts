@@ -1,7 +1,9 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { PostComponent, Post, User } from '../../components/post/post.component';
+import { PostComponent } from '../../components/post/post.component';
 import { PostService } from '../../services/post.service';
+import { Post } from '../../models/post.model';
+import { User } from '../../models/user.model';
 
 @Component({
   selector: 'app-bookmarks',

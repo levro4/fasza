@@ -1,7 +1,9 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { PostComponent, Post, User } from '../../components/post/post.component';
-import { PostService, PostResponse } from '../../services/post.service';
+import { PostComponent } from '../../components/post/post.component';
+import { PostService } from '../../services/post.service';
+import { Post } from '../../models/post.model';
+import { User } from '../../models/user.model';
 
 @Component({
   selector: 'app-explore',
@@ -33,7 +35,7 @@ export class ExploreComponent implements OnInit {
 
   ngOnInit() {
     this.postService.getPosts().subscribe({
-      next: (data: PostResponse[]) => {
+      next: (data: Post[]) => {
         this.randomPosts = data.map(pr => this.mapPostResponse(pr));
       },
       error: (err) => {
@@ -43,12 +45,14 @@ export class ExploreComponent implements OnInit {
   }
 
   // Maps the backend response to the component's internal interfaces
-  private mapPostResponse(pr: PostResponse): { post: Post, user: User } {
+  private mapPostResponse(pr: Post): { post: Post, user: User } {
     return {
       post: {
         id: pr.id,
         content: pr.content,
-        timestamp: new Date(pr.created_at).toLocaleString(),
+        created_at: pr.created_at ? new Date(pr.created_at).toLocaleString() : '',
+        owner: pr.owner,
+        owner_id: pr.owner_id,
         isBookmarked: false,
         hashtags: [],
         likes: 0,
@@ -58,9 +62,9 @@ export class ExploreComponent implements OnInit {
         views: 0
       },
       user: {
-        displayName: pr.owner.username,
-        username: `@${pr.owner.username}`,
-        profileImage: 'https://i.pravatar.cc/150?u=' + pr.owner.id
+        displayName: pr.owner?.username || 'Unknown',
+        username: `@${pr.owner?.username || 'unknown'}`,
+        profileImage: 'https://i.pravatar.cc/150?u=' + (pr.owner?.id || 1)
       }
     };
   }

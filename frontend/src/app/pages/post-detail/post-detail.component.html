@@ -10,23 +10,27 @@
   </div>
 </header>
 
-<div class="post-detail-container" *ngIf="mainPost">
-  <!-- A fő poszt (thread view vonal nélkül, vagy épp azzal, ha lenne felette is poszt) -->
-  <app-post
-    [post]="mainPost.post"
-    [user]="mainPost.user"
-    [isClickable]="false"
-    [isThreadLineVisible]="true">
-  </app-post>
+@if (mainPost) {
+  <div class="post-detail-container">
 
-  <!-- Komment szekció (Replies) -->
-  <div class="comments-section">
+    <!-- A fő poszt (thread view vonal nélkül, vagy épp azzal, ha lenne felette is poszt) -->
     <app-post
-      *ngFor="let comment of comments; let last = last"
-      [post]="comment.post"
-      [user]="comment.user"
-      [isClickable]="true"
-      [isThreadLineVisible]="!last">
+      [post]="mainPost.original_post!"
+      [user]="mainPost.owner"
+      [isClickable]="false"
+      [isThreadLineVisible]="true">
     </app-post>
+
+    <!-- Komment szekció (Replies) -->
+    <div class="comments-section">
+      @for (comment of comments; track comment.post.id; let last = $last) {
+        <app-post
+          [post]="comment.post"
+          [user]="comment.author"
+          [isClickable]="true"
+          [isThreadLineVisible]="!last">
+        </app-post>
+      }
+    </div>
   </div>
-</div>
+}

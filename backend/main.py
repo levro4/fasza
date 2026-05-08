@@ -1,20 +1,19 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 import database, schemas, auth
 from jose import JWTError, jwt
-from typing import List, Optional
+from typing import List
 
 # Create the database tables
 database.Base.metadata.create_all(bind=database.engine)
 
 app = FastAPI(title="Fake Twitter API")
 
-# VERY IMPORTANT FOR ANGULAR: Allow CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4200"], # Your Angular dev server
+    allow_origins=["http://localhost:4200"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -101,6 +100,27 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 def read_users_me(current_user: database.User = Depends(get_current_user)):
     return current_user
 
+@app.put("/users/me", response_model=schemas.UserResponse)
+def update_users_me(user_update: schemas.UserUpdate, db: Session = Depends(get_db), current_user: database.User = Depends(get_current_user)):
+    print("user_update:\n", user_update)
+    if user_update.username is not None:
+        if user_update.username != current_user.username:
+            existing_user = db.query(database.User).filter(database.User.username == user_update.username).first()
+            if existing_user:
+                raise HTTPException(status_code=400, detail="Username already taken")
+        current_user.username = user_update.username
+        
+    if user_update.displayName is not None:
+        current_user.displayName = user_update.displayName
+    if user_update.profileImage is not None:
+        current_user.profileImage = user_update.profileImage
+    if user_update.bannerImage is not None:
+        current_user.bannerImage = user_update.bannerImage
+
+    db.commit()
+    db.refresh(current_user)
+    return current_user
+
 @app.get("/users/{user_id}", response_model=schemas.UserResponse)
 def get_user(user_id: int, db: Session = Depends(get_db)):
     user = db.query(database.User).filter(database.User.id == user_id).first()
@@ -142,12 +162,20 @@ def create_post(post: schemas.PostCreate, db: Session = Depends(get_db), current
 
 @app.get("/posts/", response_model=list[schemas.PostResponse])
 def read_posts(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    posts = db.query(database.Post).order_by(database.Post.created_at.desc()).offset(skip).limit(limit).all()
+    posts = db.query(database.Post) \
+        .options(joinedload(database.Post.owner)) \
+        .order_by(database.Post.created_at.desc()) \
+        .offset(skip) \
+        .limit(limit) \
+        .all()
     return posts
 
 @app.get("/posts/{post_id}", response_model=schemas.PostResponse)
 def read_post(post_id: int, db: Session = Depends(get_db)):
-    post = db.query(database.Post).filter(database.Post.id == post_id).first()
+    post = db.query(database.Post) \
+        .options(joinedload(database.Post.owner)) \
+        .filter(database.Post.id == post_id) \
+        .first()
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
     return post
@@ -208,14 +236,23 @@ def retweet_post(post_id: int, db: Session = Depends(get_db), current_user: data
         raise HTTPException(status_code=400, detail="You already retweeted this post")
 
     # A retweet could have empty content or original content
+    username = original_post.owner.username if original_post.owner else "unknown"
+
     retweet = database.Post(
-        content=f"RT @{original_post.owner.username}: {original_post.content[:50]}...",
+        content=f"RT @{username}: {original_post.content[:50]}...",
         owner_id=current_user.id,
         original_post_id=original_post.id
     )
     db.add(retweet)
     db.commit()
     db.refresh(retweet)
+
+    retweet = (
+        db.query(database.Post)
+        .options(joinedload(database.Post.owner))
+        .filter(database.Post.id == retweet.id)
+        .first()
+    )
     return retweet
 
 # --- COMMENTS ---
@@ -230,11 +267,24 @@ def create_comment(post_id: int, comment: schemas.CommentCreate, db: Session = D
     db.add(db_comment)
     db.commit()
     db.refresh(db_comment)
+
+    db_comment = (
+        db.query(database.Comment)
+        .options(joinedload(database.Comment.author))
+        .filter(database.Comment.id == db_comment.id)
+        .first()
+    )
     return db_comment
 
 @app.get("/posts/{post_id}/comments/", response_model=List[schemas.CommentResponse])
 def read_comments(post_id: int, db: Session = Depends(get_db)):
-    comments = db.query(database.Comment).filter(database.Comment.post_id == post_id).all()
+    comments = (
+        db.query(database.Comment)
+        .options(joinedload(database.Comment.author))
+        .filter(database.Comment.post_id == post_id)
+        .all()
+    )
+    print(len(comments))
     return comments
 
 @app.delete("/comments/{comment_id}", status_code=status.HTTP_204_NO_CONTENT)

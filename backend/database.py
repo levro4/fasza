@@ -20,6 +20,9 @@ class User(Base):
     password_hash = Column(String)
     role = Column(String, default="user") # 'admin' or 'user'
     is_suspended = Column(Boolean, default=False)
+    displayName = Column(String, nullable=True)
+    profileImage = Column(String, nullable=True)
+    bannerImage = Column(String, nullable=True)
 
     posts = relationship("Post", back_populates="owner")
     comments = relationship("Comment", back_populates="author")

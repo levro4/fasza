@@ -1,10 +1,11 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PostComponent, Post, User } from '../../components/post/post.component';
-import { PostResponse, PostService } from '../../services/post.service';
+import { PostComponent } from '../../components/post/post.component';
+import { PostService } from '../../services/post.service';
 import { AuthService } from '../../services/auth.service';
-import { UserResponse } from '../../services/post.service';
+import { User } from '../../models/user.model';
+import { Post } from '../../models/post.model';
 
 @Component({
   selector: 'app-profile',
@@ -17,11 +18,11 @@ export class ProfileComponent implements OnInit {
   pageTitle = 'Profile';
   private postService = inject(PostService);
   private authService = inject(AuthService);
+  private cdr = inject(ChangeDetectorRef);
 
   activeTab = 'Posts';
   tabs = ['Posts', 'Replies', 'Reposts', 'Media', 'Likes'];
 
-  // Edit Profile Modal állapotok
   isEditModalOpen = false;
   editForm = {
     displayName: '',
@@ -29,20 +30,23 @@ export class ProfileComponent implements OnInit {
     bannerImage: '',
   };
 
-  user: UserResponse | null = null;
-  postList: PostResponse[] | undefined;
+  user: User | null = null;
+  posts: Post[] = [];
 
   ngOnInit(): void {
     this.authService.getLoggedInUser().subscribe((user) => {
       this.user = user;
+      this.loadUserPosts();
+      this.cdr.detectChanges();
     });
   }
 
-  get posts(): PostResponse[] {
-    this.postService.getPosts().subscribe(value => {
-    this.postList =  value.filter(p => [1, 2, 3].includes(p.original_post_id!));
+  loadUserPosts(): void {
+    if (!this.user) return;
+    this.postService.getPosts().subscribe(allPosts => {
+      this.posts = allPosts.filter(p => p.owner_id === this.user?.id);
+      this.cdr.detectChanges();
     });
-    return (this.postList) ? this.postList : [];
   }
 
   get activeTabIndex(): number {
@@ -53,14 +57,12 @@ export class ProfileComponent implements OnInit {
     this.activeTab = tab;
   }
 
-  // --- Modal Logika ---
-
   openEditModal() {
     if (!this.user) return;
     this.editForm = {
-      displayName: this.user.username,
-      profileImage: this.user.profileImage,
-      bannerImage: this.user.bannerImage,
+      displayName: this.user.displayName || this.user.username,
+      profileImage: this.user.profileImage || '',
+      bannerImage: this.user.bannerImage || '',
     };
     this.isEditModalOpen = true;
   }
@@ -71,10 +73,23 @@ export class ProfileComponent implements OnInit {
 
   saveProfile() {
     if (!this.user) return;
-    this.user.username = this.editForm.displayName;
-    this.user.profileImage = this.editForm.profileImage;
-    this.user.bannerImage = this.editForm.bannerImage;
 
-    this.closeEditModal();
+    const updateData = {
+      displayName: this.editForm.displayName,
+      profileImage: this.editForm.profileImage,
+      bannerImage: this.editForm.bannerImage
+    };
+
+    this.authService.updateUser(updateData).subscribe({
+      next: (updatedUser) => {
+        this.user = updatedUser;
+        this.closeEditModal();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error updating profile', err);
+        this.closeEditModal();
+      }
+    });
   }
 }

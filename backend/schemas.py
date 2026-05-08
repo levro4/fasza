@@ -8,12 +8,21 @@ class UserCreate(BaseModel):
     email: str
     password: str
 
+class UserUpdate(BaseModel):
+    displayName: Optional[str] = None
+    username: Optional[str] = None
+    profileImage: Optional[str] = None
+    bannerImage: Optional[str] = None
+
 class UserResponse(BaseModel):
     id: int
     username: str
     email: str
     role: str
     is_suspended: bool
+    displayName: Optional[str] = None
+    profileImage: Optional[str] = None
+    bannerImage: Optional[str] = None
 
     class Config:
         from_attributes = True

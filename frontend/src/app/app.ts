@@ -1,14 +1,12 @@
 import { Component, inject } from '@angular/core';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { SidebarComponent } from './components/sidebar/sidebar.component';
-import { NgIf } from '@angular/common';
 import { filter } from 'rxjs/operators';
-import * as dotenv from 'dotenv';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, SidebarComponent, NgIf],
+  imports: [RouterOutlet, SidebarComponent],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
@@ -28,6 +26,5 @@ export class App {
   }
 
   ngOnInit() {
-    // dotenv.config();
   }
 }

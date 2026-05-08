@@ -3,25 +3,9 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { PostService } from '../../services/post.service';
-
-export interface Post {
-  id: number;
-  content: string;
-  timestamp: string;
-  isBookmarked?: boolean;
-  hashtags?: string[];
-  likes?: number;
-  isLiked?: boolean;
-  reposts?: number;
-  isReposted?: boolean;
-  views?: number;
-}
-
-export interface User {
-  displayName: string;
-  username: string;
-  profileImage: string;
-}
+import { Post } from '../../models/post.model';
+import { User } from '../../models/user.model';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-post',
@@ -44,6 +28,8 @@ export class PostComponent implements OnInit {
   // Kommentelés (Reply) modal állapotok
   isReplyModalOpen = false;
   replyContent = '';
+  defaultProfilePictureUrl = environment.defaultProfilePictureUrl;
+
 
   constructor(private router: Router) {}
 
@@ -51,19 +37,19 @@ export class PostComponent implements OnInit {
     // Betöltjük, hogy hány komment van ehhez a poszthoz
     this.postService.getCommentsForPost(this.post.id).subscribe({
       next: (comments) => {
+        console.log(`Comments for post ${this.post.id}:`, comments);
         this.commentCount = comments.length;
       }
     });
 
-    // Kezdeti értékek, ha nincsenek megadva (Szimuláljuk, mintha jönnének a backendről)
     if (this.post.likes === undefined) {
-      this.post.likes = Math.floor(Math.random() * 50);
+      this.post.likes = 0;
     }
     if (this.post.reposts === undefined) {
-      this.post.reposts = Math.floor(Math.random() * 20);
+      this.post.reposts = 0;
     }
     if (this.post.views === undefined) {
-      this.post.views = Math.floor(Math.random() * 500) + 100; // Alapértelmezett megtekintések
+      this.post.views =0 ;
     }
   }
 
@@ -137,4 +123,5 @@ export class PostComponent implements OnInit {
     const hashtagRegex = /(#[a-zA-Z0-9_]+)/g;
     return this.post.content.replace(hashtagRegex, '<span class="hashtag-link">$1</span>');
   }
+
 }
