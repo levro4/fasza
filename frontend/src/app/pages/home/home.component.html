@@ -15,8 +15,8 @@
     @for (item of posts; track item.post.id) {
       <app-post
         [post]="item.post"
-        [user]="item.user"
-        (postClicked)="onPostClicked($event)"
+        (postClicked)="onPostClicked(item.post)"
+        (postDeleted)="onPostDeleted($event)"
       ></app-post>
     }
   </div>

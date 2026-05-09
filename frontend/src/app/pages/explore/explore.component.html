@@ -5,30 +5,14 @@
   </div>
 </div>
 
-<!-- Trends szekció -->
-<div class="trends-section">
-  <h2 class="trends-header-title">Trends for you</h2>
-
-  @for (trend of trends; track trend.title) {
-    <div class="trend-item">
-      <div class="trend-content">
-        <span class="trend-category">{{ trend.category }}</span>
-        <span class="trend-title">{{ trend.title }}</span>
-      </div>
-      <div class="trend-options">
-        <svg viewBox="0 0 24 24" aria-hidden="true" width="18.75" height="18.75"><g><path d="M3 12c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2zm9 2c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm7 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"></path></g></svg>
-      </div>
-    </div>
-  }
-</div>
-
-<!-- Random Posztok Szekció -->
-<div class="divider"></div>
-<div class="random-posts-feed">
-  @for (item of randomPosts; track item.post.id) {
-    <app-post
-      [post]="item.post"
-      [user]="item.user">
-    </app-post>
+<div class="posts-feed">
+  @if (loading) {
+    <div class="empty-state">Loading...</div>
+  } @else if (posts.length === 0) {
+    <div class="empty-state">No posts to explore right now.</div>
+  } @else {
+    @for (post of posts; track post.id) {
+      <app-post [post]="post"></app-post>
+    }
   }
 </div>

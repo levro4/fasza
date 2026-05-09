@@ -1,0 +1,11 @@
+@if (current) {
+  <div class="confirm-overlay" (click)="cancel()">
+    <div class="confirm-dialog" (click)="$event.stopPropagation()">
+      <p class="confirm-message">{{ current.message }}</p>
+      <div class="confirm-actions">
+        <button class="btn-cancel" (click)="cancel()">Cancel</button>
+        <button class="btn-confirm" (click)="confirm()">{{ current.confirmLabel }}</button>
+      </div>
+    </div>
+  </div>
+}

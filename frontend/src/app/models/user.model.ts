@@ -6,8 +6,9 @@ export interface User {
   is_suspended?: boolean;
   displayName?: string;
   bannerImage?: string;
-  profileImage: string;
-  joinDate?: string;
-  followingCount?: number;
-  followersCount?: number;
+  profileImage?: string;
+  created_at?: string;
+  follower_count?: number;
+  following_count?: number;
+  is_following?: boolean;
 }

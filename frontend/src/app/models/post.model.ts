@@ -8,8 +8,6 @@ export interface Post {
   owner: User;
   original_post_id?: number;
   original_post?: Post;
-
-  // Frontend specific / unified fields
   isBookmarked?: boolean;
   hashtags?: string[];
   likes?: number;
@@ -17,4 +15,13 @@ export interface Post {
   reposts?: number;
   isReposted?: boolean;
   views?: number;
+  commentCount?: number;
+}
+
+export interface PostApiResponse extends Post {
+  like_count?: number;
+  repost_count?: number;
+  is_liked?: boolean;
+  is_reposted?: boolean;
+  original_post?: PostApiResponse;
 }

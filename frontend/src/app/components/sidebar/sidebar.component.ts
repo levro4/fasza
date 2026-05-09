@@ -1,20 +1,61 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { NgIf } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { PostService } from '../../services/post.service';
+import { ToastService } from '../../services/toast.service';
+import { NotificationService } from '../../services/notification.service';
+import { AuthService } from '../../services/auth.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, CommonModule],
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.css'],
 })
-export class SidebarComponent {
+export class SidebarComponent implements OnInit, OnDestroy {
   isPostModalOpen = false;
   postContent = '';
+  unreadCount = 0;
+  _isLoggedIn = !!localStorage.getItem('access_token');
+  _isAdmin = false;
+  isSubmitting = false;
 
   private postService = inject(PostService);
+  private toastService = inject(ToastService);
+  private notifService = inject(NotificationService);
+  private authService = inject(AuthService);
+  private cdr = inject(ChangeDetectorRef);
+
+  private unreadSub?: Subscription;
+  private userSub?: Subscription;
+  private pollInterval?: ReturnType<typeof setInterval>;
+
+  ngOnInit(): void {
+    if (this._isLoggedIn) {
+      this.notifService.fetchUnreadCount();
+      this.pollInterval = setInterval(() => this.notifService.fetchUnreadCount(), 30000);
+    }
+    this.unreadSub = this.notifService.unreadCount$.subscribe(count => {
+      this.unreadCount = count;
+      this.cdr.detectChanges();
+    });
+    this.userSub = this.authService.getOptionalUser().subscribe(user => {
+      this._isAdmin = user?.role === 'admin';
+      this.cdr.detectChanges();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.unreadSub?.unsubscribe();
+    this.userSub?.unsubscribe();
+    if (this.pollInterval) clearInterval(this.pollInterval);
+  }
+
+  isAdmin(): boolean {
+    return this._isAdmin;
+  }
 
   openPostModal() {
     this.isPostModalOpen = true;
@@ -22,7 +63,8 @@ export class SidebarComponent {
 
   closePostModal() {
     this.isPostModalOpen = false;
-    this.postContent = ''; // Tartalom ürítése bezáráskor
+    this.postContent = '';
+    this.cdr.detectChanges();
   }
 
   onPostContentChange(event: Event) {
@@ -32,40 +74,26 @@ export class SidebarComponent {
   submitPost() {
     const trimmedContent = this.postContent.trim();
     if (trimmedContent) {
-      // 1. Hashtagek kigyűjtése
-      const hashtagRegex = /(#[a-zA-Z0-9_]+)/g;
-      const matchedHashtags = trimmedContent.match(hashtagRegex) || [];
-
-      // Egyedi hashtagek kiválasztása (ha valaki kétszer írja be ugyanazt)
-      const uniqueHashtags = [...new Set(matchedHashtags)];
-
-      // 2. Poszt adatbázis (Service) számára átadandó objektum előkészítése
-      // (Backendünk jelenleg egy 'content' stringet vár, ami tartalmazhat hashtageket is)
-      const newPostData = {
-        content: trimmedContent,
-      };
-      console.log('Sending to database:', newPostData);
-
-      // Valódi alkalmazásban itt hívnánk meg a Service "createPost" függvényét:
       this.postService.createPost(trimmedContent).subscribe({
-        next: (post) => {
-          console.log('Post created successfully:', post);
+        next: () => {
           this.closePostModal();
-          // Ideally, we might want to refresh the feed here or use an observable subject
+          this.postService.notifyPostCreated();
+          this.toastService.success('Your post has been published!');
         },
-        error: (err) => {
-          console.error('Failed to create post:', err);
+        error: () => {
+          this.toastService.error('Failed to publish post. Please try again.');
         },
       });
     }
   }
+
   logout() {
     localStorage.removeItem('access_token');
+    this._isLoggedIn = false;
     window.location.reload();
   }
 
   isLoggedIn(): boolean {
-    return !!localStorage.getItem('access_token');
+    return this._isLoggedIn;
   }
 }
-

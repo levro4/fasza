@@ -1,0 +1,15 @@
+<div class="reply-thread-container">
+  <app-post
+    [post]="originalPost"
+    [isClickable]="true"
+    [isThreadLineVisible]="true">
+  </app-post>
+
+  <div class="reply-wrapper" (click)="navigateToOriginalPost()">
+    <app-post
+      [post]="replyPost"
+      [isComment]="true"
+      [isClickable]="false">
+    </app-post>
+  </div>
+</div>

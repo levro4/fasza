@@ -1,7 +1,7 @@
 # schemas.py
 from pydantic import BaseModel
 from datetime import datetime
-from typing import List, Optional
+from typing import Optional
 
 class UserCreate(BaseModel):
     username: str
@@ -23,9 +23,16 @@ class UserResponse(BaseModel):
     displayName: Optional[str] = None
     profileImage: Optional[str] = None
     bannerImage: Optional[str] = None
+    created_at: Optional[datetime] = None
+    follower_count: int = 0
+    following_count: int = 0
+    is_following: bool = False
 
     class Config:
         from_attributes = True
+
+class FollowResponse(BaseModel):
+    is_following: bool
 
 class PostBase(BaseModel):
     content: str
@@ -35,20 +42,34 @@ class PostCreate(PostBase):
 
 class PostResponse(PostBase):
     id: int
-    content: str
     created_at: datetime
     owner_id: int
     original_post_id: Optional[int] = None
+    original_post: Optional['PostResponse'] = None
     owner: UserResponse
+    like_count: int = 0
+    repost_count: int = 0
+    is_liked: bool = False
+    is_reposted: bool = False
 
     class Config:
         from_attributes = True
 
+PostResponse.model_rebuild()
+
+class LikeResponse(BaseModel):
+    is_liked: bool
+    like_count: int
+
+class RetweetResponse(BaseModel):
+    is_reposted: bool
+    repost_count: int
+    
 class CommentBase(BaseModel):
     content: str
 
 class CommentCreate(CommentBase):
-    pass
+    pass  # no parent_comment_id anymore
 
 class CommentResponse(CommentBase):
     id: int
@@ -56,9 +77,37 @@ class CommentResponse(CommentBase):
     user_id: int
     post_id: int
     author: UserResponse
+    like_count: int = 0
+    is_liked: bool = False
 
     class Config:
         from_attributes = True
+
+class CommentLikeResponse(BaseModel):
+    is_liked: bool
+    like_count: int
+
+class ReplyWithContextResponse(BaseModel):
+    original_post: PostResponse
+    reply: CommentResponse
+
+class UserSummary(BaseModel):
+    id: int
+    username: str
+    displayName: Optional[str] = None
+    profileImage: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+class NotificationResponse(BaseModel):
+    id: int
+    post_id: Optional[int] = None
+    type: str
+    is_read: bool
+    created_at: datetime
+    actor: UserSummary
+    post_content: Optional[str] = None
 
 class Token(BaseModel):
     access_token: str

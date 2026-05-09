@@ -1,0 +1,22 @@
+.reply-thread-container {
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* Remove the bottom border from the original post so the thread reads as one unit */
+.reply-thread-container > app-post > :first-child,
+.reply-thread-container app-post:first-of-type .post {
+  border-bottom: none;
+}
+
+.reply-wrapper {
+  cursor: pointer;
+}
+
+.reply-wrapper:hover .post {
+  background-color: var(--hover-bg-color);
+}
+
+/* Remove duplicate bottom border from the reply post since the container owns it */
+.reply-wrapper app-post .post {
+  border-bottom: none;
+}

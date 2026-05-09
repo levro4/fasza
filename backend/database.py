@@ -21,7 +21,7 @@ class User(Base):
     role = Column(String, default="user") # 'admin' or 'user'
     is_suspended = Column(Boolean, default=False)
     displayName = Column(String, nullable=True)
-    profileImage = Column(String, nullable=True)
+    profileImage = Column(String, default="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png")
     bannerImage = Column(String, nullable=True)
 
     posts = relationship("Post", back_populates="owner")
@@ -38,7 +38,7 @@ class Post(Base):
     original_post_id = Column(Integer, ForeignKey("posts.id"), nullable=True) # For retweets
 
     owner = relationship("User", back_populates="posts")
-    comments = relationship("Comment", back_populates="post")
+    comments = relationship("Comment", back_populates="post", cascade="all, delete-orphan")
     original_post = relationship("Post", remote_side=[id])
 
 # 3. Comment (Reply) Entity
@@ -46,13 +46,15 @@ class Comment(Base):
     __tablename__ = "comments"
 
     id = Column(Integer, primary_key=True, index=True)
-    content = Column(String)
+    content = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.datetime.now)
-    post_id = Column(Integer, ForeignKey("posts.id"))
-    user_id = Column(Integer, ForeignKey("users.id"))
+
+    post_id = Column(Integer, ForeignKey("posts.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     post = relationship("Post", back_populates="comments")
     author = relationship("User", back_populates="comments")
+
 
 # 4. Like Entity (Mapping table)
 class Like(Base):
@@ -62,10 +64,33 @@ class Like(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     post_id = Column(Integer, ForeignKey("posts.id"))
 
-# 5. Follower Entity (Mapping table)
+# 5. CommentLike Entity (Mapping table)
+class CommentLike(Base):
+    __tablename__ = "comment_likes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    comment_id = Column(Integer, ForeignKey("comments.id"))
+
+# 6. Follower Entity (Mapping table)
 class Follower(Base):
     __tablename__ = "followers"
 
     id = Column(Integer, primary_key=True, index=True)
     follower_id = Column(Integer, ForeignKey("users.id"))
     followed_id = Column(Integer, ForeignKey("users.id"))
+
+# 7. Notification Entity
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))   # recipient
+    actor_id = Column(Integer, ForeignKey("users.id"))  # who triggered it
+    post_id = Column(Integer, ForeignKey("posts.id"))
+    type = Column(String)  # 'new_post' or 'repost'
+    is_read = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.datetime.now)
+
+    actor = relationship("User", foreign_keys=[actor_id])
+    post = relationship("Post", foreign_keys=[post_id])

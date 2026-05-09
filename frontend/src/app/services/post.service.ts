@@ -1,26 +1,44 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { Post } from '../models/post.model';
-import { Comment } from '../models/comment.model';
+import { Post, PostApiResponse } from '../models/post.model';
+import { Comment, CommentApiResponse, ReplyWithContext } from '../models/comment.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PostService {
+  private feedChangedSource = new Subject<void>();
+
+  feedChanged$ = this.feedChangedSource.asObservable();
+  // alias kept so the sidebar doesn't need changing
+  postCreated$ = this.feedChanged$;
+
   constructor(private http: HttpClient) {}
 
-  getPosts(): Observable<Post[]> {
-    return this.http.get<Post[]>(`${environment.apiUrl}/posts/`);
+  notifyFeedChanged() {
+    this.feedChangedSource.next();
   }
 
-  getPostById(id: number): Observable<Post> {
-    return this.http.get<Post>(`${environment.apiUrl}/posts/${id}`);
+  notifyPostCreated() {
+    this.feedChangedSource.next();
   }
 
-  getCommentsForPost(postId: number): Observable<Comment[]> {
-    return this.http.get<Comment[]>(`${environment.apiUrl}/posts/${postId}/comments/`);
+  getPosts(): Observable<PostApiResponse[]> {
+    return this.http.get<PostApiResponse[]>(`${environment.apiUrl}/posts/`);
+  }
+
+  getPostById(id: number): Observable<PostApiResponse> {
+    return this.http.get<PostApiResponse>(`${environment.apiUrl}/posts/${id}`);
+  }
+
+  getCommentsForPost(postId: number): Observable<CommentApiResponse[]> {
+    return this.http.get<CommentApiResponse[]>(`${environment.apiUrl}/posts/${postId}/comments/`);
+  }
+
+  getUserReplies(userId: number): Observable<ReplyWithContext[]> {
+    return this.http.get<ReplyWithContext[]>(`${environment.apiUrl}/users/${userId}/replies`);
   }
 
   createPost(content: string): Observable<Post> {
@@ -39,15 +57,28 @@ export class PostService {
     return this.http.delete<void>(`${environment.apiUrl}/comments/${commentId}`);
   }
 
-  likePost(postId: number): Observable<any> {
-    return this.http.post(`${environment.apiUrl}/posts/${postId}/like`, {});
+  likePost(postId: number): Observable<{ is_liked: boolean; like_count: number }> {
+    return this.http.post<{ is_liked: boolean; like_count: number }>(
+      `${environment.apiUrl}/posts/${postId}/like`,
+      {},
+    );
   }
 
-  retweetPost(postId: number): Observable<Post> {
-    return this.http.post<Post>(`${environment.apiUrl}/posts/${postId}/retweet`, {});
+  likeComment(commentId: number): Observable<{ is_liked: boolean; like_count: number }> {
+    return this.http.post<{ is_liked: boolean; like_count: number }>(
+      `${environment.apiUrl}/comments/${commentId}/like`,
+      {},
+    );
   }
 
-  getFeed(): Observable<Post[]> {
-    return this.http.get<Post[]>(`${environment.apiUrl}/feed`);
+  retweetPost(postId: number): Observable<{ is_reposted: boolean; repost_count: number }> {
+    return this.http.post<{ is_reposted: boolean; repost_count: number }>(
+      `${environment.apiUrl}/posts/${postId}/retweet`,
+      {},
+    );
+  }
+
+  getFeed(): Observable<PostApiResponse[]> {
+    return this.http.get<PostApiResponse[]>(`${environment.apiUrl}/feed`);
   }
 }

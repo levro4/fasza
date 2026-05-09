@@ -16,8 +16,7 @@
     <div class="posts-feed">
       @for (item of bookmarkedPosts; track item.post.id) {
         <app-post
-          [post]="item.post"
-          [user]="item.user">
+          [post]="item.post">
         </app-post>
       }
     </div>

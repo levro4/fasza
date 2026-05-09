@@ -1,6 +1,52 @@
-<header class="page-header">
-  {{ pageTitle }}
-</header>
-<div class="placeholder-content">
-  <p>Itt lesznek az értesítések (Notifications).</p>
-</div>
+<header class="page-header">Notifications</header>
+
+@if (isLoading) {
+  <div class="placeholder-content"><p>Loading...</p></div>
+} @else if (notifications.length === 0) {
+  <div class="placeholder-content">
+    <h2>Nothing to see here yet</h2>
+    <p>Follow users to get notified when they post or repost.</p>
+  </div>
+} @else {
+  <div class="notifications-list">
+    @for (notif of notifications; track notif.id) {
+      <div
+        class="notification-item"
+        [class.unread]="!notif.is_read"
+        (click)="onNotificationClick(notif)">
+
+        <div class="notif-icon-col">
+          @if (notif.type === 'new_post') {
+            <div class="notif-type-icon post-icon">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><g><path d="M23.643 4.937c-.835.37-1.732.62-2.675.733.962-.576 1.7-1.49 2.048-2.578-.9.534-1.897.922-2.958 1.13-.85-.904-2.06-1.47-3.4-1.47-2.572 0-4.658 2.086-4.658 4.66 0 .364.042.718.12 1.06-3.873-.195-7.304-2.05-9.602-4.868-.4.69-.63 1.49-.63 2.342 0 1.616.823 3.043 2.072 3.878-.764-.025-1.482-.234-2.11-.583v.06c0 2.257 1.605 4.14 3.737 4.568-.392.106-.803.162-1.227.162-.3 0-.593-.028-.877-.082.593 1.85 2.313 3.198 4.352 3.234-1.595 1.25-3.604 1.995-5.786 1.995-.376 0-.747-.022-1.112-.065 2.062 1.323 4.51 2.093 7.14 2.093 8.57 0 13.255-7.098 13.255-13.254 0-.2-.005-.402-.014-.602.91-.658 1.7-1.477 2.323-2.41z"></path></g></svg>
+            </div>
+          } @else if (notif.type === 'repost') {
+            <div class="notif-type-icon repost-icon">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><g><path d="M4.5 3.88l4.432 4.14-1.364 1.46L5.5 7.55V16c0 1.1.896 2 2 2H13v2H7.5c-2.209 0-4-1.79-4-4V7.55L1.432 9.48.068 8.02 4.5 3.88zM16.5 6H11V4h5.5c2.209 0 4 1.79 4 4v8.45l2.068-1.93 1.364 1.46-4.432 4.14-4.432-4.14 1.364-1.46 2.068 1.93V8c0-1.1-.896-2-2-2z"></path></g></svg>
+            </div>
+          } @else {
+            <div class="notif-type-icon follow-icon">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><g><path d="M17.863 13.44c1.477 1.58 2.366 3.8 2.632 6.46l.11 1.1H3.395l.11-1.1c.266-2.66 1.155-4.88 2.632-6.46C7.627 11.85 9.648 11 12 11s4.373.85 5.863 2.44zM12 2C9.791 2 8 3.79 8 6s1.791 4 4 4 4-1.79 4-4-1.791-4-4-4z"></path></g></svg>
+            </div>
+          }
+          <img
+            [src]="notif.actor.profileImage || defaultProfilePictureUrl"
+            alt="avatar"
+            class="notif-avatar">
+        </div>
+
+        <div class="notif-body">
+          <div class="notif-message">{{ getMessage(notif) }}</div>
+          @if (notif.post_content) {
+            <div class="notif-preview">{{ notif.post_content }}</div>
+          }
+          <div class="notif-time">{{ timeAgo(notif.created_at) }}</div>
+        </div>
+
+        @if (!notif.is_read) {
+          <div class="unread-dot"></div>
+        }
+      </div>
+    }
+  </div>
+}

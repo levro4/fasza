@@ -1,0 +1,101 @@
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: background-color 0.15s;
+  position: relative;
+}
+
+.notification-item:hover {
+  background-color: var(--hover-bg-color);
+}
+
+.notification-item.unread {
+  background-color: rgba(29, 155, 240, 0.06);
+}
+
+.notification-item.unread:hover {
+  background-color: rgba(29, 155, 240, 0.1);
+}
+
+.notif-icon-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.notif-type-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.post-icon {
+  background-color: rgba(29, 155, 240, 0.12);
+  color: var(--primary-color);
+}
+
+.repost-icon {
+  background-color: rgba(0, 186, 124, 0.12);
+  color: #00ba7c;
+}
+
+.follow-icon {
+  background-color: rgba(120, 86, 255, 0.12);
+  color: #7856ff;
+}
+
+.notif-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.notif-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.notif-message {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 4px;
+}
+
+.notif-preview {
+  font-size: 14px;
+  color: var(--secondary-text-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
+.notif-time {
+  font-size: 13px;
+  color: var(--secondary-text-color);
+}
+
+.unread-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  flex-shrink: 0;
+  margin-top: 4px;
+}

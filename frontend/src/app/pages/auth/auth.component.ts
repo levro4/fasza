@@ -1,8 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { environment } from '../../../environments/environment';
+import { AuthService } from '../../services/auth.service';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-auth',
@@ -17,16 +19,17 @@ export class AuthComponent {
   email = '';
   password = '';
 
-  constructor(private http: HttpClient, private router: Router) {}
+  private toastService = inject(ToastService);
+
+  constructor(private http: HttpClient, private router: Router, private authService: AuthService) {}
 
   toggleMode() {
     this.isLoginMode = !this.isLoginMode;
   }
 
-  public login() {
+  public login(isAfterRegister = false) {
     if (!this.username || !this.password) return;
 
-    // OAuth2PasswordRequestForm expects form-data
     const body = new URLSearchParams();
     body.set('username', this.username);
     body.set('password', this.password);
@@ -39,12 +42,17 @@ export class AuthComponent {
       next: (response) => {
         if (response && response.access_token) {
           localStorage.setItem('access_token', response.access_token);
+          this.authService.refreshCurrentUser();
+          const message = isAfterRegister
+            ? `Welcome, @${this.username}! Your account has been created.`
+            : `Welcome back, @${this.username}!`;
+          this.toastService.success(message);
           this.router.navigate(['/']);
         }
       },
       error: (err) => {
         console.error('Login failed', err);
-        alert(err.error?.detail || 'Login failed');
+        this.toastService.error(err.error?.detail || 'Login failed. Please try again.');
       }
     });
   }
@@ -60,13 +68,12 @@ export class AuthComponent {
 
     this.http.post<any>(`${environment.apiUrl}/register`, userData).subscribe({
       next: () => {
-        // After registration, automatically log them in or switch to login mode
         this.isLoginMode = true;
-        this.login();
+        this.login(true);
       },
       error: (err) => {
         console.error('Registration failed', err);
-        alert(err.error?.detail || 'Registration failed');
+        this.toastService.error(err.error?.detail || 'Registration failed. Please try again.');
       }
     });
   }

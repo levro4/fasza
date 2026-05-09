@@ -1,9 +1,10 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Subscription } from 'rxjs';
 import { PostComponent } from '../../components/post/post.component';
 import { PostService } from '../../services/post.service';
-import { Post } from '../../models/post.model';
-import { User } from '../../models/user.model';
+import { UserService } from '../../services/user.service';
+import { Post, PostApiResponse } from '../../models/post.model';
 
 @Component({
   selector: 'app-explore',
@@ -12,60 +13,65 @@ import { User } from '../../models/user.model';
   templateUrl: './explore.component.html',
   styleUrls: ['./explore.component.css']
 })
-export class ExploreComponent implements OnInit {
-  searchQuery = '';
+export class ExploreComponent implements OnInit, OnDestroy {
+  private userService = inject(UserService);
   private postService = inject(PostService);
+  private cdr = inject(ChangeDetectorRef);
 
-  randomPosts: { post: Post, user: User }[] = [];
-
-  trends = [
-    { category: 'Népszerű itt: Magyarország', title: 'Romania' },
-    { category: 'Sport · Népszerű', title: '#Formula1' },
-    { category: 'Népszerű itt: Magyarország', title: 'fideszt' },
-    { category: 'Népszerű itt: Magyarország', title: 'Helyes' },
-    { category: 'Népszerű itt: Magyarország', title: '#XRPs' },
-    { category: 'Népszerű itt: Magyarország', title: 'Get Ready' },
-    { category: 'Népszerű itt: Magyarország', title: 'karácsony' },
-    { category: 'Népszerű itt: Magyarország', title: '#maenoburger' },
-    { category: 'Népszerű itt: Magyarország', title: 'tiszások' },
-    { category: 'Népszerű itt: Magyarország', title: 'Budapesten' },
-    { category: 'Népszerű itt: Magyarország', title: 'Kanna' },
-    { category: 'Népszerű itt: Magyarország', title: 'Big $XRP' }
-  ];
+  posts: Post[] = [];
+  loading = true;
+  private feedSub?: Subscription;
 
   ngOnInit() {
-    this.postService.getPosts().subscribe({
-      next: (data: Post[]) => {
-        this.randomPosts = data.map(pr => this.mapPostResponse(pr));
+    this.loadPosts();
+    this.feedSub = this.postService.feedChanged$.subscribe(() => this.loadPosts());
+  }
+
+  ngOnDestroy() {
+    this.feedSub?.unsubscribe();
+  }
+
+  loadPosts() {
+    this.userService.getExploreFeed().subscribe({
+      next: (data: PostApiResponse[]) => {
+        this.posts = data.map(pr => this.mapApiResponseToPost(pr));
+        this.loading = false;
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Error loading explore posts', err);
+        this.loading = false;
+        this.cdr.detectChanges();
       }
     });
   }
 
-  // Maps the backend response to the component's internal interfaces
-  private mapPostResponse(pr: Post): { post: Post, user: User } {
+  onPostDeleted(postId: number) {
+    this.posts = this.posts.filter(p => p.id !== postId && p.original_post_id !== postId);
+  }
+
+  private mapApiResponseToPost(pr: PostApiResponse): Post {
     return {
-      post: {
-        id: pr.id,
-        content: pr.content,
-        created_at: pr.created_at ? new Date(pr.created_at).toLocaleString() : '',
-        owner: pr.owner,
-        owner_id: pr.owner_id,
-        isBookmarked: false,
-        hashtags: [],
-        likes: 0,
-        isLiked: false,
-        reposts: 0,
-        isReposted: false,
-        views: 0
-      },
-      user: {
-        displayName: pr.owner?.username || 'Unknown',
+      id: pr.id,
+      content: pr.content,
+      created_at: pr.created_at ? new Date(pr.created_at).toLocaleString() : '',
+      owner: {
+        id: pr.owner?.id || 0,
+        displayName: pr.owner?.displayName || pr.owner.username,
         username: `@${pr.owner?.username || 'unknown'}`,
-        profileImage: 'https://i.pravatar.cc/150?u=' + (pr.owner?.id || 1)
-      }
+        profileImage: pr.owner?.profileImage || 'https://i.pravatar.cc/150?u=' + (pr.owner?.id || 1),
+      },
+      owner_id: pr.owner_id,
+      original_post_id: pr.original_post_id,
+      original_post: pr.original_post ? this.mapApiResponseToPost(pr.original_post) : undefined,
+      isBookmarked: false,
+      hashtags: [],
+      likes: pr.like_count ?? 0,
+      isLiked: pr.is_liked ?? false,
+      reposts: pr.repost_count ?? 0,
+      isReposted: pr.is_reposted ?? false,
+      views: 0,
+      commentCount: 0,
     };
   }
 }

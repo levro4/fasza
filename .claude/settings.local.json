@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem *)",
+      "Bash(python -c \"import main; print\\('OK'\\)\")",
+      "Bash(Select-Object FullName)",
+      "Bash(npx tsc *)"
+    ]
+  }
+}

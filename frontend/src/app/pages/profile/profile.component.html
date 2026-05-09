@@ -1,182 +1,280 @@
 @if (user) {
-<header class="page-header">
-  <div class="header-content">
-    <!-- Vissza nyíl placeholder -->
-    <svg viewBox="0 0 24 24" aria-hidden="true" class="back-icon"><g><path d="M7.414 13l5.043 5.04-1.414 1.42L3.586 12l7.457-7.46 1.414 1.42L7.414 11H21v2H7.414z"></path></g></svg>
-    <div class="header-text">
-      <h2>{{ user.displayName || user.username }}</h2>
-      <span class="post-count">{{ posts.length }} posts</span>
-    </div>
-  </div>
-</header>
-
-<div class="profile-container">
-  <!-- Banner -->
-  <div class="banner">
-    @if (user.bannerImage) {
-      <img [src]="user.bannerImage" alt="Profile Banner">
-    }
-  </div>
-
-  <!-- Profil infók -->
-  <div class="profile-info-section">
-    <div class="profile-header-row">
-      <div class="avatar-wrapper">
-        <img [src]="user.profileImage" alt="Profile Image" class="profile-avatar">
-      </div>
-      <button class="btn-outline edit-profile-btn" (click)="openEditModal()">Edit profile</button>
-    </div>
-
-    <div class="user-details">
-      <h1 class="display-name">{{ user.displayName || user.username }}</h1>
-      <span class="username">{{ user.username }}</span>
-
-      <div class="join-date">
-        <svg viewBox="0 0 24 24" aria-hidden="true" class="calendar-icon"><g><path d="M7 4V3h2v1h6V3h2v1h1.5C19.89 4 21 5.12 21 6.5v12c0 1.38-1.11 2.5-2.5 2.5h-13C4.12 21 3 19.88 3 18.5v-12C3 5.12 4.12 4 5.5 4H7zm0 2H5.5c-.27 0-.5.22-.5.5v12c0 .28.23.5.5.5h13c.28 0 .5-.22.5-.5v-12c0-.28-.22-.5-.5-.5H17v1h-2V6H9v1H7V6zm0 6h2v-2H7v2zm0 4h2v-2H7v2zm4-4h2v-2h-2v2zm0 4h2v-2h-2v2zm4-4h2v-2h-2v2z"></path></g></svg>
-        <span>Joined {{ user.joinDate }}</span>
-      </div>
-
-      <div class="follower-stats">
-        <span class="stat"><strong>{{ user.followingCount }}</strong> Following</span>
-        <span class="stat"><strong>{{ user.followersCount }}</strong> Followers</span>
+  <header class="page-header">
+    <div class="header-content">
+      <svg (click)="goBack()" viewBox="0 0 24 24" aria-hidden="true" class="back-icon">
+        <g>
+          <path d="M7.414 13l5.043 5.04-1.414 1.42L3.586 12l7.457-7.46 1.414 1.42L7.414 11H21v2H7.414z"></path>
+        </g>
+      </svg>
+      <div class="header-text">
+        <h2>{{ user.displayName || user.username }}</h2>
+        <span class="post-count">{{ posts.length }} posts</span>
       </div>
     </div>
-  </div>
+  </header>
 
-  <!-- Feed fülek (Navigáció) -->
-  <div class="feed-tabs">
-    @for (tab of tabs; track tab) {
-      <div
-        class="tab"
-        [class.active]="activeTab === tab"
-        (click)="setActiveTab(tab)">
-        <div class="tab-text-wrapper">
-          <span>{{ tab }}</span>
+  <div class="profile-container">
+    <!-- Banner -->
+    <div class="banner">
+      @if (user.bannerImage) {
+        <img [src]="user.bannerImage" alt="Profile Banner">
+      }
+    </div>
+
+    <!-- Profil infók -->
+    <div class="profile-info-section">
+      <div class="profile-header-row">
+        <div class="avatar-wrapper">
+          <img [src]="user.profileImage" alt="Profile Image" class="profile-avatar">
+        </div>
+
+        <div class="profile-action-buttons">
+          @if (loggedInUserId) {
+            @if (isOwnProfile) {
+              <button class="btn-outline edit-profile-btn" (click)="openEditModal()">Edit profile</button>
+            } @else if(!isAdmin) {
+              <button
+                class="follow-btn"
+                [class.btn-primary]="!user.is_following"
+                [class.btn-outline]="user.is_following"
+                (click)="toggleFollow()">
+                {{ user.is_following ? 'Following' : 'Follow' }}
+              </button>
+            }
+            @if (canSuspend) {
+              <button
+                class="suspend-btn"
+                [class.btn-suspend]="!user.is_suspended"
+                [class.btn-unsuspend]="user.is_suspended"
+                (click)="toggleSuspend()">
+                {{ user.is_suspended ? 'Unsuspend' : 'Suspend' }}
+              </button>
+            }
+          }
         </div>
       </div>
-    }
-    <!-- Animált vonal -->
-    <div class="tab-indicator-container" [style.transform]="'translateX(' + (activeTabIndex * 100) + '%)'">
-       <div class="tab-indicator-line"></div>
+
+      <div class="user-details">
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <h1 class="display-name">{{ user.displayName || user.username }}</h1>
+          @if (user.is_suspended) {
+            <span class="suspended-badge">Suspended</span>
+          }
+        </div>
+        <span class="username">{{ user.username }}</span>
+
+        @if (user.created_at) {
+          <div class="join-date">
+            <svg viewBox="0 0 24 24" aria-hidden="true" class="calendar-icon">
+              <g>
+                <path
+                  d="M7 4V3h2v1h6V3h2v1h1.5C19.89 4 21 5.12 21 6.5v12c0 1.38-1.11 2.5-2.5 2.5h-13C4.12 21 3 19.88 3 18.5v-12C3 5.12 4.12 4 5.5 4H7zm0 2H5.5c-.27 0-.5.22-.5.5v12c0 .28.23.5.5.5h13c.28 0 .5-.22.5-.5v-12c0-.28-.22-.5-.5-.5H17v1h-2V6H9v1H7V6zm0 6h2v-2H7v2zm0 4h2v-2H7v2zm4-4h2v-2h-2v2zm0 4h2v-2h-2v2zm4-4h2v-2h-2v2z"></path>
+              </g>
+            </svg>
+            <span>Joined {{ user.created_at | date:'MMMM yyyy' }}</span>
+          </div>
+        }
+
+        <div class="follower-stats">
+          <span class="stat stat-link" (click)="openFollowList('following')"><strong>{{ user.following_count ?? 0 }}</strong> Following</span>
+          <span class="stat stat-link" (click)="openFollowList('followers')"><strong>{{ user.follower_count ?? 0 }}</strong> Followers</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feed fülek -->
+    <div class="feed-tabs">
+      @for (tab of tabs; track tab) {
+        <div class="tab" [class.active]="activeTab === tab" (click)="setActiveTab(tab)">
+          <div class="tab-text-wrapper">
+            <span>{{ tab }}</span>
+          </div>
+        </div>
+      }
+      <div class="tab-indicator-container" [style.transform]="'translateX(' + (activeTabIndex * 100) + '%)'">
+        <div class="tab-indicator-line"></div>
+      </div>
+    </div>
+
+    <!-- Tab content -->
+    <div class="tab-content-area">
+
+      @if (activeTab === 'Posts') {
+        @if (posts.length == 0) {
+          <div class="placeholder-content">
+            <h2>Nothing to see here - yet</h2>
+            <p>When {{ (isOwnProfile) ? "you" : "they" }} post something, it will show up here.</p>
+          </div>
+        } @else {
+          <div class="posts-feed">
+            @for (item of posts; track item.id) {
+              <app-post [post]="item" (postDeleted)="onPostDeleted($event)"></app-post>
+            }
+          </div>
+        }
+      }
+
+      @if (activeTab === 'Replies') {
+        @if (replies.length == 0) {
+          <div class="placeholder-content">
+            <h2>Nothing to see here - yet</h2>
+            <p>When {{ (isOwnProfile) ? "you" : "they" }} reply to a post, it will show up here.</p>
+          </div>
+        } @else {
+          <div class="posts-feed">
+            @for (item of replies; track item.reply.id) {
+              <app-reply-thread [data]="item"></app-reply-thread>
+            }
+          </div>
+        }
+      }
+
+      @if (activeTab === 'Reposts') {
+        @if (reposts.length == 0) {
+          <div class="placeholder-content">
+            <h2>Nothing to see here - yet</h2>
+            <p>When {{ (isOwnProfile) ? "you" : "they" }} repost a post, it will show up here.</p>
+          </div>
+        } @else {
+          <div class="posts-feed">
+            @for (item of reposts; track item.id) {
+              <app-post [post]="item" (postDeleted)="onPostDeleted($event)"></app-post>
+            }
+          </div>
+        }
+      }
+
+      @if (activeTab === 'Likes') {
+        @if (likedPosts.length == 0) {
+          <div class="placeholder-content">
+            <h2>{{ (isOwnProfile) ? "You" : "They" }} don't have any likes yet</h2>
+            <p>Once {{ (isOwnProfile) ? "you" : "they" }} like a post, it'll show up here.</p>
+          </div>
+        } @else {
+          <div class="posts-feed">
+            @for (item of likedPosts; track item.id) {
+              <app-post [post]="item" (postDeleted)="onPostDeleted($event)"></app-post>
+            }
+          </div>
+        }
+      }
     </div>
   </div>
 
-  <!-- Dinamikus Tartalom -->
-  <div class="tab-content-area">
-
-    <!-- Posts Tab -->
-    @if (activeTab === 'Posts') {
-      <div class="posts-feed">
-        @for (item of posts; track item.id) {
-          <app-post
-            [post]="item">
-          </app-post>
-        }
-      </div>
-    }
-
-    <!-- Replies Tab -->
-    @if (activeTab === 'Replies') {
-      <div class="placeholder-content">
-        <h2>Nothing to see here - yet</h2>
-        <p>When they reply to a post, it will show up here.</p>
-      </div>
-    }
-
-    <!-- Reposts Tab -->
-    @if (activeTab === 'Reposts') {
-      <div class="placeholder-content">
-        <h2>Nothing to see here - yet</h2>
-        <p>When they repost a post, it will show up here.</p>
-      </div>
-    }
-
-    <!-- Media Tab -->
-    @if (activeTab === 'Media') {
-      <div class="placeholder-content">
-        <h2>Lights, camera ... attachments!</h2>
-        <p>When they send Tweets with photos or videos in them, it will show up here.</p>
-      </div>
-    }
-
-    <!-- Likes Tab -->
-    @if (activeTab === 'Likes') {
-      <div class="placeholder-content">
-        <h2>They don't have any likes yet</h2>
-        <p>Once they like a post, it'll show up here.</p>
-      </div>
-    }
-
-  </div>
-</div>
-
-<!-- Edit Profile Modal -->
-@if (isEditModalOpen) {
-  <div class="modal-overlay" (click)="closeEditModal()">
-    <div class="modal-container edit-modal" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <div style="display: flex; align-items: center; gap: 20px;">
-          <button class="modal-close-btn" (click)="closeEditModal()">
+  <!-- Followers / Following Modal -->
+  @if (followListModal) {
+    <div class="modal-overlay" (click)="closeFollowList()">
+      <div class="modal-container follow-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <button class="modal-close-btn" (click)="closeFollowList()">
             <svg viewBox="0 0 24 24" aria-hidden="true" width="20" height="20" fill="currentColor">
               <g><path d="M10.59 12L4.54 5.96l1.42-1.42L12 10.59l6.04-6.05 1.42 1.42L13.41 12l6.05 6.04-1.42 1.42L12 13.41l-6.04 6.05-1.42-1.42L10.59 12z"></path></g>
             </svg>
           </button>
-          <h2 style="margin: 0; font-size: 20px;">Edit profile</h2>
+          <h2 class="modal-title">{{ followListModal === 'followers' ? 'Followers' : 'Following' }}</h2>
         </div>
-        <!-- Ide áthelyezve a margin-left: auto hogy a jobb szélre kerüljön -->
-        <button class="btn-primary save-btn" style="margin-left: auto;" (click)="saveProfile()">Save</button>
-      </div>
-
-      <div class="modal-content" style="padding: 0; overflow-y: auto; max-height: 70vh;">
-
-        <!-- Banner Edit -->
-        <div class="edit-banner">
-          @if (editForm.bannerImage || user.bannerImage) {
-            <img [src]="editForm.bannerImage || user.bannerImage" alt="Banner preview">
+        <div class="follow-list">
+          @if (followListLoading) {
+            <p class="follow-list-empty">Loading...</p>
+          } @else if (followListUsers.length === 0) {
+            <p class="follow-list-empty">
+              {{ followListModal === 'followers' ? 'No followers yet.' : 'Not following anyone yet.' }}
+            </p>
+          } @else {
+            @for (u of followListUsers; track u.id) {
+              <div class="follow-list-item" (click)="goToUser(u.id)">
+                <img [src]="u.profileImage" alt="avatar" class="follow-list-avatar">
+                <div class="follow-list-info">
+                  <span class="follow-list-name">{{ u.displayName || u.username }}</span>
+                  <span class="follow-list-username">&#64;{{ u.username }}</span>
+                </div>
+              </div>
+            }
           }
-          <div class="edit-overlay">
-             <!-- Kamera ikon -->
-             <div class="camera-icon">
-                <svg viewBox="0 0 24 24" aria-hidden="true" width="22" height="22" fill="#fff"><g><path d="M9.697 3H11v2h-.697l-3 2H5c-.276 0-.5.224-.5.5v11c0 .276.224.5.5.5h14c.276 0 .5-.224.5-.5V10h2v8.5c0 1.381-1.119 2.5-2.5 2.5H5c-1.381 0-2.5-1.119-2.5-2.5v-11C2.5 6.119 3.619 5 5 5h1.697l3-2zM12 10.5c-1.105 0-2 .895-2 2s.895 2 2 2 2-.895 2-2-.895-2-2-2zm-4 2c0-2.209 1.791-4 4-4s4 1.791 4 4-1.791 4-4 4-4-1.791-4-4zM17 2c0 1.657-1.343 3-3 3v1c1.657 0 3 1.343 3 3h1c0-1.657 1.343-3 3-3V5c-1.657 0-3-1.343-3-3h-1z"></path></g></svg>
-             </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Edit Profile Modal -->
+  @if (isEditModalOpen) {
+    <div class="modal-overlay" (click)="closeEditModal()">
+      <div class="modal-container edit-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div style="display: flex; align-items: center; gap: 20px;">
+            <button class="modal-close-btn" (click)="closeEditModal()">
+              <svg viewBox="0 0 24 24" aria-hidden="true" width="20" height="20" fill="currentColor">
+                <g>
+                  <path
+                    d="M10.59 12L4.54 5.96l1.42-1.42L12 10.59l6.04-6.05 1.42 1.42L13.41 12l6.05 6.04-1.42 1.42L12 13.41l-6.04 6.05-1.42-1.42L10.59 12z"></path>
+                </g>
+              </svg>
+            </button>
+            <h2 style="margin: 0; font-size: 20px;">Edit profile</h2>
           </div>
+          <button class="btn-primary save-btn" style="margin-left: auto;" (click)="saveProfile()">Save</button>
         </div>
 
-        <!-- Profile Avatar Edit -->
-        <div class="edit-avatar-section">
-          <div class="edit-avatar-wrapper">
-            <img [src]="editForm.profileImage || user.profileImage" alt="Avatar preview" class="edit-avatar">
-            <div class="edit-overlay avatar-overlay">
+        <div class="modal-content" style="padding: 0; overflow-y: auto; max-height: 70vh;">
+
+          <div class="edit-banner">
+            @if (editForm.bannerImage || user.bannerImage) {
+              <img [src]="editForm.bannerImage || user.bannerImage" alt="Banner preview">
+            }
+            <div class="edit-overlay">
               <div class="camera-icon">
-                  <svg viewBox="0 0 24 24" aria-hidden="true" width="22" height="22" fill="#fff"><g><path d="M9.697 3H11v2h-.697l-3 2H5c-.276 0-.5.224-.5.5v11c0 .276.224.5.5.5h14c.276 0 .5-.224.5-.5V10h2v8.5c0 1.381-1.119 2.5-2.5 2.5H5c-1.381 0-2.5-1.119-2.5-2.5v-11C2.5 6.119 3.619 5 5 5h1.697l3-2zM12 10.5c-1.105 0-2 .895-2 2s.895 2 2 2 2-.895 2-2-.895-2-2-2zm-4 2c0-2.209 1.791-4 4-4s4 1.791 4 4-1.791 4-4 4-4-1.791-4-4zM17 2c0 1.657-1.343 3-3 3v1c1.657 0 3 1.343 3 3h1c0-1.657 1.343-3 3-3V5c-1.657 0-3-1.343-3-3h-1z"></path></g></svg>
+                <svg viewBox="0 0 24 24" aria-hidden="true" width="22" height="22" fill="#fff">
+                  <g>
+                    <path
+                      d="M9.697 3H11v2h-.697l-3 2H5c-.276 0-.5.224-.5.5v11c0 .276.224.5.5.5h14c.276 0 .5-.224.5-.5V10h2v8.5c0 1.381-1.119 2.5-2.5 2.5H5c-1.381 0-2.5-1.119-2.5-2.5v-11C2.5 6.119 3.619 5 5 5h1.697l3-2zM12 10.5c-1.105 0-2 .895-2 2s.895 2 2 2 2-.895 2-2-.895-2-2-2zm-4 2c0-2.209 1.791-4 4-4s4 1.791 4 4-1.791 4-4 4-4-1.791-4-4zM17 2c0 1.657-1.343 3-3 3v1c1.657 0 3 1.343 3 3h1c0-1.657 1.343-3 3-3V5c-1.657 0-3-1.343-3-3h-1z"></path>
+                  </g>
+                </svg>
               </div>
             </div>
           </div>
+
+          <div class="edit-avatar-section">
+            <div class="edit-avatar-wrapper">
+              <img [src]="editForm.profileImage || user.profileImage" alt="Avatar preview" class="edit-avatar">
+              <div class="edit-overlay avatar-overlay">
+                <div class="camera-icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true" width="22" height="22" fill="#fff">
+                    <g>
+                      <path
+                        d="M9.697 3H11v2h-.697l-3 2H5c-.276 0-.5.224-.5.5v11c0 .276.224.5.5.5h14c.276 0 .5-.224.5-.5V10h2v8.5c0 1.381-1.119 2.5-2.5 2.5H5c-1.381 0-2.5-1.119-2.5-2.5v-11C2.5 6.119 3.619 5 5 5h1.697l3-2zM12 10.5c-1.105 0-2 .895-2 2s.895 2 2 2 2-.895 2-2-.895-2-2-2zm-4 2c0-2.209 1.791-4 4-4s4 1.791 4 4-1.791 4-4 4-4-1.791-4-4zM17 2c0 1.657-1.343 3-3 3v1c1.657 0 3 1.343 3 3h1c0-1.657 1.343-3 3-3V5c-1.657 0-3-1.343-3-3h-1z"></path>
+                    </g>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="edit-form-fields">
+            <div class="form-group edit-input-group">
+              <label class="edit-label">Name</label>
+              <input type="text" class="edit-input" [(ngModel)]="editForm.displayName"
+                     [ngModelOptions]="{standalone: true}">
+            </div>
+            <div class="form-group edit-input-group">
+              <label class="edit-label">Profile Image URL</label>
+              <input type="text" class="edit-input" [(ngModel)]="editForm.profileImage"
+                     [ngModelOptions]="{standalone: true}">
+            </div>
+            <div class="form-group edit-input-group">
+              <label class="edit-label">Banner Image URL</label>
+              <input type="text" class="edit-input" [(ngModel)]="editForm.bannerImage"
+                     [ngModelOptions]="{standalone: true}">
+            </div>
+            <div class="danger-zone">
+              <span class="danger-zone-label">Danger zone</span>
+              <button class="btn-danger delete-account-btn" (click)="closeEditModal(); deleteAccount()">
+                Delete account
+              </button>
+            </div>
+          </div>
+
         </div>
-
-        <!-- Űrlap Mezők -->
-        <div class="edit-form-fields">
-          <!-- Név -->
-          <div class="form-group edit-input-group">
-            <label class="edit-label">Name</label>
-            <input type="text" class="edit-input" [(ngModel)]="editForm.displayName" [ngModelOptions]="{standalone: true}">
-          </div>
-
-          <!-- Profilkép URL -->
-          <div class="form-group edit-input-group">
-            <label class="edit-label">Profile Image URL</label>
-            <input type="text" class="edit-input" [(ngModel)]="editForm.profileImage" [ngModelOptions]="{standalone: true}">
-          </div>
-
-          <!-- Banner URL -->
-          <div class="form-group edit-input-group">
-            <label class="edit-label">Banner Image URL</label>
-            <input type="text" class="edit-input" [(ngModel)]="editForm.bannerImage" [ngModelOptions]="{standalone: true}">
-          </div>
-        </div>
-
       </div>
     </div>
-  </div>
-}
+  }
 }

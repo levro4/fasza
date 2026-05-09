@@ -15,22 +15,25 @@
 
     <!-- A fő poszt (thread view vonal nélkül, vagy épp azzal, ha lenne felette is poszt) -->
     <app-post
-      [post]="mainPost.original_post!"
-      [user]="mainPost.owner"
+      [post]="mainPost"
       [isClickable]="false"
       [isThreadLineVisible]="true">
     </app-post>
 
     <!-- Komment szekció (Replies) -->
     <div class="comments-section">
-      @for (comment of comments; track comment.post.id; let last = $last) {
+      @for (comment of comments; track comment.id; let last = $last) {
         <app-post
           [post]="comment.post"
-          [user]="comment.author"
-          [isClickable]="true"
+          [isComment]="true"
+          [isClickable]="false"
           [isThreadLineVisible]="!last">
         </app-post>
       }
     </div>
+  </div>
+} @else {
+  <div class="loading-container">
+    <p>Loading post...</p>
   </div>
 }

@@ -1,8 +1,25 @@
 .post {
   display: flex;
-  padding: 16px;
+  flex-direction: column;
+  padding: 12px 16px 0;
   border-bottom: 1px solid var(--border-color);
   transition: background-color 0.2s;
+}
+
+.repost-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--secondary-text-color);
+  margin-bottom: 4px;
+  padding-left: 52px;
+}
+
+.post-row {
+  display: flex;
+  padding-bottom: 12px;
 }
 
 .post.clickable {
@@ -11,6 +28,14 @@
 
 .post.clickable:hover {
   background-color: var(--hover-bg-color);
+}
+
+.post-text {
+  font-size: 15px;
+  line-height: 20px;
+  margin-bottom: 12px;
+  color: var(--text-color);
+  word-wrap: break-word;
 }
 
 .post-left-col {
@@ -60,6 +85,10 @@
   font-size: 15px;
 }
 
+.post-options-wrapper {
+  position: relative;
+}
+
 .post-options {
   color: var(--secondary-text-color);
   cursor: pointer;
@@ -72,25 +101,56 @@
   transition: background-color 0.2s, color 0.2s;
 }
 
-.post-options:hover {
+.post-options:hover,
+.post-options.active {
   background-color: rgba(29, 155, 240, 0.1);
   color: #1d9bf0;
 }
 
-.post-text {
-  font-size: 15px;
-  line-height: 20px;
-  margin-bottom: 12px;
-  color: var(--text-color);
-  word-wrap: break-word;
+.options-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  min-width: 160px;
+  z-index: 100;
+  overflow: hidden;
 }
 
-::ng-deep .hashtag-link {
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+  text-align: left;
+  transition: background-color 0.15s;
+}
+
+.delete-item {
+  color: #e0245e;
+}
+
+.delete-item:hover {
+  background-color: rgba(224, 36, 94, 0.08);
+}
+
+::ng-deep .hashtag-link,
+::ng-deep .mention-link {
   color: var(--primary-color);
   cursor: pointer;
 }
 
-::ng-deep .hashtag-link:hover {
+::ng-deep .hashtag-link:hover,
+::ng-deep .mention-link:hover {
   text-decoration: underline;
 }
 
@@ -157,6 +217,17 @@
 }
 .bookmark-group.bookmarked .action-icon {
   color: #1d9bf0;
+}
+
+.action-group.guest-action {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.action-group.guest-action:hover .action-icon,
+.action-group.guest-action:hover .action-count {
+  background-color: transparent !important;
+  color: inherit !important;
 }
 
 /* Modal text area focus outline override */

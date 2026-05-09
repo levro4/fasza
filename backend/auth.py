@@ -5,7 +5,7 @@ from passlib.context import CryptContext
 
 SECRET_KEY = "your-super-secret-key-for-development" # Use env variable in prod
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
