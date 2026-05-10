@@ -135,6 +135,14 @@
   transition: background-color 0.15s;
 }
 
+.edit-item {
+  color: var(--text-color);
+}
+
+.edit-item:hover {
+  background-color: var(--hover-bg-color);
+}
+
 .delete-item {
   color: #e0245e;
 }

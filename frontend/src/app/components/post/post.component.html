@@ -41,6 +41,16 @@
             </div>
             @if (isOptionsOpen && canDelete) {
               <div class="options-dropdown">
+                @if (canEdit) {
+                  <button class="dropdown-item edit-item" (click)="openEditModal($event)">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                      <g>
+                        <path d="M11.696 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-6.696l-2 2V19H5V5h8.696l2-2zM19.563 2.436l-1 1L20.563 5.437l1-1-2-2zM12 12l-.5 2.5 2.5-.5L21.063 7.437l-2-2L12 12z"></path>
+                      </g>
+                    </svg>
+                    Edit post
+                  </button>
+                }
                 <button class="dropdown-item delete-item" (click)="deletePost($event)">
                   <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
                     <g>
@@ -121,6 +131,48 @@
     </div>
   </div>
 </div>
+
+<!-- Edit Modal -->
+@if (isEditModalOpen) {
+  <div class="modal-overlay" (click)="closeEditModal()">
+    <div class="modal-container" (click)="$event.stopPropagation()" style="margin-top: 5vh; align-self: flex-start;">
+      <div class="modal-header">
+        <button class="modal-close-btn" (click)="closeEditModal()">
+          <svg viewBox="0 0 24 24" aria-hidden="true" width="20" height="20" fill="currentColor">
+            <g>
+              <path d="M10.59 12L4.54 5.96l1.42-1.42L12 10.59l6.04-6.05 1.42 1.42L13.41 12l6.05 6.04-1.42 1.42L12 13.41l-6.04 6.05-1.42-1.42L10.59 12z"></path>
+            </g>
+          </svg>
+        </button>
+        <span style="font-weight: 700; font-size: 17px;">Edit post</span>
+      </div>
+      <div class="modal-content">
+        <div style="display: flex;">
+          <div style="margin-right: 12px;">
+            <img [src]="user?.profileImage || defaultProfilePictureUrl" alt="My avatar"
+                 style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+          </div>
+          <div style="flex: 1; display: flex; flex-direction: column;">
+            <textarea
+              class="reply-textarea"
+              placeholder="What's happening?"
+              [(ngModel)]="editContent"
+              style="border: none; resize: none; font-size: 20px; font-family: inherit; outline: none; min-height: 100px; padding: 10px 0; background: transparent; color: var(--text-color);">
+            </textarea>
+            <div style="display: flex; justify-content: flex-end; padding-top: 12px; border-top: 1px solid var(--border-color);">
+              <button
+                class="btn-primary"
+                [disabled]="!editContent.trim() || editContent.trim() === ep.content"
+                (click)="saveEdit()">
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
 
 <!-- Reply Modal -->
 @if (isReplyModalOpen) {

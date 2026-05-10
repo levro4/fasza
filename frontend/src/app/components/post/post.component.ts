@@ -50,9 +50,11 @@ export class PostComponent implements OnInit, OnChanges, OnDestroy {
 
   commentCount = 0;
   isReplyModalOpen = false;
+  isEditModalOpen = false;
   isOptionsOpen = false;
   private userSub?: Subscription;
   replyContent = '';
+  editContent = '';
   defaultProfilePictureUrl = environment.defaultProfilePictureUrl;
   user: User | null = null;
 
@@ -107,6 +109,10 @@ export class PostComponent implements OnInit, OnChanges, OnDestroy {
     return !!(this.user && (this.user.role === 'admin' || this.user.id === this.post.owner_id));
   }
 
+  get canEdit(): boolean {
+    return !!(this.user && this.user.id === this.post.owner_id && !this.isRepost);
+  }
+
   @HostListener('document:click')
   closeOptions() {
     if (this.isOptionsOpen) {
@@ -121,24 +127,60 @@ export class PostComponent implements OnInit, OnChanges, OnDestroy {
     this.isOptionsOpen = !this.isOptionsOpen;
   }
 
+  openEditModal(event: Event) {
+    event.stopPropagation();
+    this.editContent = this.ep.content;
+    this.isEditModalOpen = true;
+    this.isOptionsOpen = false;
+  }
+
+  closeEditModal() {
+    this.isEditModalOpen = false;
+    this.editContent = '';
+  }
+
+  saveEdit() {
+    const trimmed = this.editContent.trim();
+    if (!trimmed || trimmed === this.ep.content) {
+      this.closeEditModal();
+      return;
+    }
+    this.postService.updatePost(this.ep.id, trimmed).subscribe({
+      next: (updated) => {
+        this.ep.content = updated.content;
+        this.closeEditModal();
+        this.toastService.success('Post updated successfully.');
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.toastService.error('Failed to update post. Please try again.');
+      },
+    });
+  }
+
   async deletePost(event: Event) {
     event.stopPropagation();
     this.isOptionsOpen = false;
 
+    const label = this.isComment ? 'reply' : 'post';
     const confirmed = await this.confirmDialog.confirm(
-      'Are you sure you want to delete this post? This action cannot be undone.',
+      `Are you sure you want to delete this ${label}? This action cannot be undone.`,
       'Delete'
     );
     if (!confirmed) return;
 
-    this.postService.deletePost(this.post.id).subscribe({
+    const request = this.isComment
+      ? this.postService.deleteComment(this.post.id)
+      : this.postService.deletePost(this.post.id);
+
+    request.subscribe({
       next: () => {
-        this.toastService.success('Post deleted successfully.');
+        this.toastService.success(`${label.charAt(0).toUpperCase() + label.slice(1)} deleted successfully.`);
         this.postDeleted.emit(this.post.id);
         this.postService.notifyFeedChanged();
       },
       error: () => {
-        this.toastService.error('Failed to delete post. Please try again.');
+        this.toastService.error(`Failed to delete ${label}. Please try again.`);
       },
     });
   }

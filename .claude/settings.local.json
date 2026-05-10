@@ -4,7 +4,10 @@
       "Bash(Get-ChildItem *)",
       "Bash(python -c \"import main; print\\('OK'\\)\")",
       "Bash(Select-Object FullName)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(Select-Object FullName, PSIsContainer)",
+      "Bash(Format-List)",
+      "Bash(Test-Path *)"
     ]
   }
 }
